@@ -1,3 +1,12 @@
+clara (0.20150212) calibre7; urgency=low
+
+  * Adapt packaging for Debian Squeeze / Calibre 7 in Athos:
+    - Use python 2.6.
+    - Update depends from slurm-client to slurm-client | slurm-llnl.
+    - Add deps on python-importlib.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Mon, 23 Feb 2015 15:10:46 +0100
+
 clara (0.20150212) calibre8; urgency=low
 
   * 'clara enc': do not log passwords.
