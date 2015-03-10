@@ -1,3 +1,22 @@
+clara (0.20150310) calibre7; urgency=low
+
+  * Adapt packaging for Debian Squeeze / Calibre 7 in Athos:
+    - Use python 2.6.
+    - Update depends from slurm-client to slurm-client | slurm-llnl.
+    - Add deps on python-importlib.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Tue, 10 Mar 2015 15:58:52 +0100
+
+clara (0.20150310) calibre8; urgency=low
+
+  * 'clara repo sync': rework syntax. Fix #53.
+  * 'clara p2p status|restart': allow to configure in config.ini the string
+     format to check the status, stop and start the service. This allows
+     to use systemctl (systemd) or service (system V).
+  * Re-add and update bash-completion. Fix #37.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Tue, 10 Mar 2015 15:45:49 +0100
+
 clara (0.20150212) calibre7; urgency=low
 
   * Adapt packaging for Debian Squeeze / Calibre 7 in Athos:
