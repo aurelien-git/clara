@@ -1,3 +1,9 @@
+clara (0.20150903+athos) calibre7; urgency=medium
+
+  * Backport for Athos.
+
+ -- Ana Beatriz Guerrero Lopez <ana@debian.org>  Thu, 03 Sep 2015 11:25:59 +0200
+
 clara (0.20150903) calibre8; urgency=medium
 
   * 'clara p2p': trackers needed to be update somewhere else after the
