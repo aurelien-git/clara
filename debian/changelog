@@ -1,3 +1,15 @@
+clara (0.20150915+c7+1) calibre7; urgency=medium
+
+  * Backport for Calibre7 / Athos.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Tue, 15 Sep 2015 14:49:59 +0200
+
+clara (0.20150915) calibre9; urgency=medium
+
+  * Fix compatibility with Python2.6
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Tue, 15 Sep 2015 14:47:42 +0200
+
 clara (0.20150911+c7+1) calibre7; urgency=medium
 
   * Backport for Calibre7 / Athos.
