@@ -11,7 +11,7 @@ Homepage: https://github.com/edf-hpc/clara
 Package: clara
 Architecture: all
 Recommends: gnupg-agent
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends},
+Depends: ${shlibs:Depends}, ${misc:Depends},
  python-docopt, clustershell (>= 1.6), python-importlib,
 # slurm
  slurm-client | slurm-llnl,
