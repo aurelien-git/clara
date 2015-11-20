@@ -1,3 +1,9 @@
+clara (0.20151117+c7+1) calibre7; urgency=medium
+
+  * Backport for Calibre7 / Athos.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Fri, 20 Nov 2015 18:10:45 +0100
+
 clara (0.20151117) calibre9; urgency=medium
 
   * 'clara repo sync': add a configuration parameter to choose the method
