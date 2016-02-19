@@ -1,3 +1,19 @@
+clara (0.20160219+c7+1) calibre7; urgency=medium
+
+  * Backport for Calibre7 / Athos.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Fri, 19 Feb 2016 15:21:51 +0100
+
+clara (0.20160219) calibre9; urgency=medium
+
+  * 'clara ipmi': add a SSH option, this allows to run a command through
+     the SSH interface of the IMM.
+  * Update the dependency on clustershell to version >= 1.7.
+  * Add new dependency on sshpass.
+  * Update user guide.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Fri, 19 Feb 2016 14:45:15 +0100
+
 clara (0.20151117+c7+1) calibre7; urgency=medium
 
   * Backport for Calibre7 / Athos.
