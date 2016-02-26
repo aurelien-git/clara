@@ -41,7 +41,9 @@ Usage:
     clara repo sync (all|<dist> [<suites>...])
     clara repo add <dist> <file>... [--reprepro-flags="list of flags"...]
     clara repo del <dist> <name>...
-    clara repo list <dist>
+    clara repo list (all|<dist>)
+    clara repo search <keyword>
+    clara repo copy <dist> <package> <from-dist>
     clara repo -h | --help | help
 
 Options:
@@ -56,6 +58,7 @@ import logging
 import os
 import sys
 import tempfile
+import ConfigParser
 
 import docopt
 from clara.utils import clara_exit, run, get_from_config, value_from_file, conf
@@ -140,67 +143,73 @@ DscIndices: Sources Release . .gz .bz2
         if conf.ddebug:
             list_flags.append("-V")
 
-        run(['reprepro'] + list_flags + \
+        run(['reprepro'] + list_flags +
             ['--basedir', repo_dir,
              '--outdir', get_from_config("repo", "mirror_local", dist),
              'export', dist])
 
 
+def get(config, section, value):
+
+    # Get dist from the repos.ini config file first
+    #  if this key doesn't exist, exit with an error
+    if config.has_option(section, "group"):
+         dist = config.get(section, "group").strip()
+    else:
+         clara_exit("Suite '{0}' is missing key 'group' in the file repos.ini".format(section))
+
+    # If the value is not in the override section, look in "repos" from the config.ini
+    if config.has_option(section, value):
+        return config.get(section, value).strip()
+    else:
+        try:
+            return get_from_config("repo", value, dist)
+        except:
+            clara_exit("Value '{0}' not found in section '{1}'".format(value, section))
+
+
 def do_sync(selected_dist, input_suites=[]):
-    info_suites = {}  # Contains all the information
-    suite_dist = {}  # Contains the pairs suite - webdir
-    all_suites = []  # Contains a list with all the suites names
-
-    for distribution in get_from_config("common", "allowed_distributions").split(","):
-        elements = get_from_config("repo", "info_suites", distribution).split(",")
-        tmp_info_suites = {}
-
-        for e in elements:
-            k, v = e.split(":")
-            all_suites.append(k)
-            suite_dist[k] = distribution
-            tmp_info_suites[k] = v
-
-        info_suites[distribution] = tmp_info_suites
 
     suites = []
-    if selected_dist == 'all':  # We sync everything
-        suites = all_suites
-    elif len(input_suites) == 0:  # We only sync suites related to the default distribution
-        suites = info_suites[selected_dist].keys()
-    else:  # If we select one or several suites, we check that are valid
-        for s in input_suites:
-            if s not in all_suites:
-                clara_exit("{0} is not a valid suite. Valid suites are: {1}".format(s, " ".join(all_suites)))
+    # Sync everything
+    if selected_dist == 'all':
+        for d in get_from_config("common", "allowed_distributions").split(","):
+            suites = suites + get_from_config("repo", "suites", d).split(",")
+    else:
+        # Only sync suites related to the selected distribution
+        if len(input_suites) == 0:
+            suites = get_from_config("repo", "suites", selected_dist).split(",")
+        # User selected one or several suites, check that they are valid
+        else:
+            for s in input_suites:
+                if s not in get_from_config("repo", "suites", selected_dist).split(","):
+                    clara_exit("{0} is not a valid suite from distribution {1}.\n"
+                        "Valid suites are: {2}".format(
+                         s, selected_dist, get_from_config("repo", "suites", selected_dist)))
             suites = input_suites
 
     logging.debug("The suites to sync are: {0}.".format(" ".join(suites)))
+
+    # Read /etc/clara/repos.ini
+    repos = ConfigParser.ConfigParser()
+    repos.read("/etc/clara/repos.ini")
+
     for s in suites:
-        mirror_root = get_from_config("repo", "mirror_root", suite_dist[s])
-        dm_server = get_from_config("repo", "server", suite_dist[s])
-        dm_root = info_suites[suite_dist[s]][s]
-
-        suite_name = s
-        if s in ["wheezy-security", "jessie-security"]:
-            suite_name = s.split("-")[0] + "/updates"
-
-        archs = get_from_config("repo", "archs", suite_dist[s])
-        sections = get_from_config("repo", "sections", suite_dist[s])
-        method = get_from_config("repo", "method", suite_dist[s])
 
         extra = []
         if conf.ddebug:  # if extra debug for 3rd party software
             extra = ['--debug']
 
+        final_dir = get(repos, s, "mirror_root") + get(repos, s, "group") + "/" + s
         run(['debmirror'] + extra + ["--diff=none",
-             "--nosource", "--ignore-release-gpg", "--ignore-missing-release",
-             "--method={0}".format(method),
-             "--arch={0}".format(archs),
-             "--host={0}".format(dm_server),
-             "--root={0}".format(dm_root),
-             "--dist={0}".format(suite_name),
-             "--section={0}".format(sections),
-              mirror_root + "/" + s])
+            "--nosource", "--ignore-release-gpg", "--ignore-missing-release",
+            "--method={0}".format(get(repos, s, "method")),
+            "--arch={0}".format(get(repos, s, "archs")),
+            "--host={0}".format(get(repos, s, "server")),
+            "--root={0}".format(get(repos, s, "mirror_dir")),
+            "--dist={0}".format(get(repos, s, "suite_name")),
+            "--section={0}".format(get(repos, s, "sections")),
+            final_dir])
 
 
 def do_reprepro(action, package=None, flags=None):
@@ -224,6 +233,26 @@ def do_reprepro(action, package=None, flags=None):
 
     if package is not None:
         cmd.append(package)
+
+    run(cmd)
+
+
+def do_reprepro_cmd(action, flags=None):
+    repo_dir = get_from_config("repo", "repo_dir", dist)
+    reprepro_config = repo_dir + '/conf/distributions'
+
+    if not os.path.isfile(reprepro_config):
+        clara_exit("There is not configuration for the local repository for {0}. Run first 'clara repo init <dist>'".format(dist))
+
+    list_flags = ['--silent', '--ask-passphrase']
+    if conf.ddebug:
+        list_flags = ['-V', '--ask-passphrase']
+
+    if flags is not None:
+        list_flags.append(flags)
+
+    cmd = ['reprepro'] + list_flags + \
+         ['--basedir', get_from_config("repo", "repo_dir", dist)] + action
 
     run(cmd)
 
@@ -263,7 +292,16 @@ def main():
             do_reprepro('remove', elem)
             do_reprepro('removesrc', elem)
     elif dargs['list']:
-        do_reprepro('list')
+        if dargs['all']:
+            do_reprepro_cmd(['dumpreferences'])
+        else:
+            do_reprepro('list')
+    elif dargs['search']:
+        do_reprepro_cmd(['ls', dargs['<keyword>']])
+    elif dargs['copy']:
+        if dargs['<from-dist>'] not in get_from_config("common", "allowed_distributions"):
+            clara_exit("{0} is not a know distribution".format(dargs['<from-dist>']))
+        do_reprepro_cmd(['copy', dist, dargs['<from-dist>'], dargs['<package>']])
 
 if __name__ == '__main__':
     main()
