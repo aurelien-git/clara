@@ -1,3 +1,10 @@
+clara (0.20160311) calibre9; urgency=medium
+
+  * Remove parameter "group" from repos.ini.
+    Fix: #61. Fix #62.
+
+ -- Ana Guerrero <ana-externe.guerrero@edf.fr>  Mon, 14 Mar 2016 15:10:48 +0100
+
 clara (0.20160226+c7+1) calibre7; urgency=medium
 
   * Backport for Calibre7 / Athos.
